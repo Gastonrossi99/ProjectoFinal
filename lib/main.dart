@@ -6,6 +6,7 @@ import 'views/perfil.dart';
 import 'views/otros.dart';
 import 'views/ia_design.dart';
 import 'views/carrito.dart';
+import 'views/item_detail.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -39,6 +40,11 @@ class _HomePageState extends State<HomePage> {
   // Variable para controlar qué botón está seleccionado
   String _selectedItem = 'Ropa';
 
+  // Estado para el detalle
+  String? _detailName;
+  int? _detailId;
+  String? _detailType;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -47,6 +53,7 @@ class _HomePageState extends State<HomePage> {
         elevation: 0,
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
+        // El botón del menú aparecerá automáticamente porque hay un Drawer
       ),
       drawer: SizedBox(
         width: 80,
@@ -73,11 +80,33 @@ class _HomePageState extends State<HomePage> {
 
   // Función para devolver la vista correspondiente según la selección
   Widget _getBody() {
+    // Si estamos en Ropa y hay un detalle seleccionado, mostramos el detalle
+    if (_selectedItem == 'Ropa' && _detailName != null) {
+      return ItemDetailView(
+        name: _detailName!,
+        id: _detailId!,
+        type: _detailType!,
+        onBack: () {
+          setState(() {
+            _detailName = null;
+          });
+        },
+      );
+    }
+
     switch (_selectedItem) {
       case 'Perfil':
         return const PerfilView();
       case 'Ropa':
-        return const HomeView();
+        return HomeView(
+          onShowDetail: (name, id, type) {
+            setState(() {
+              _detailName = name;
+              _detailId = id;
+              _detailType = type;
+            });
+          },
+        );
       case 'Otros':
         return const OtrosView();
       case 'IA Design':
@@ -85,7 +114,15 @@ class _HomePageState extends State<HomePage> {
       case 'Carrito':
         return const CarritoView();
       default:
-        return const HomeView();
+        return HomeView(
+          onShowDetail: (name, id, type) {
+            setState(() {
+              _detailName = name;
+              _detailId = id;
+              _detailType = type;
+            });
+          },
+        );
     }
   }
 
@@ -96,8 +133,9 @@ class _HomePageState extends State<HomePage> {
       onTap: () {
         setState(() {
           _selectedItem = title;
+          _detailName = null; // Limpiamos el detalle al cambiar de sección
         });
-        // Navigator.pop(context); // Opcional: cierra el menú al seleccionar
+        Navigator.pop(context); // Cerramos el drawer al seleccionar
       },
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 12),

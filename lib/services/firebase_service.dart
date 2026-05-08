@@ -40,8 +40,12 @@ class FirebaseService {
   }
 
   Stream<List<Categoria>> getCategorias() {
-    return _db.collection(_categoriasColl).snapshots().map((snapshot) =>
-        snapshot.docs.map((doc) => Categoria.fromMap(doc.data())).toList());
+    return _db
+        .collection(_categoriasColl)
+        .orderBy('categoriaID')
+        .snapshots()
+        .map((snapshot) =>
+            snapshot.docs.map((doc) => Categoria.fromMap(doc.data())).toList());
   }
 
   // --- PRODUCTOS ---
@@ -90,7 +94,11 @@ class FirebaseService {
   }
 
   Stream<List<Licencia>> getLicencias() {
-    return _db.collection(_licenciasColl).snapshots().map((snapshot) =>
-        snapshot.docs.map((doc) => Licencia.fromMap(doc.data())).toList());
+    return _db
+        .collection(_licenciasColl)
+        .orderBy('licenseID')
+        .snapshots()
+        .map((snapshot) =>
+            snapshot.docs.map((doc) => Licencia.fromMap(doc.data())).toList());
   }
 }
