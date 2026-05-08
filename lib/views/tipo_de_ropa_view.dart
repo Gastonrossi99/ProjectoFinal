@@ -185,13 +185,13 @@ class _ItemDetailViewState extends State<ItemDetailView> {
         const SizedBox(height: 8),
         Text(
           producto.nombre,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
         const Text(
           'Updated today',
-          style: TextStyle(color: Colors.grey, fontSize: 12),
+          style: TextStyle(color: Colors.grey, fontSize: 10),
         ),
       ],
     );

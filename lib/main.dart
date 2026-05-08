@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart'; 
-import 'views/home.dart';
-import 'views/perfil.dart';
-import 'views/otros.dart';
-import 'views/ia_design.dart';
-import 'views/carrito.dart';
-import 'views/tipo_de_ropa.dart';
+import 'views/home_view.dart';
+import 'views/perfil_view.dart';
+import 'views/otros_view.dart';
+import 'views/ia_design_view.dart';
+import 'views/carrito_view.dart';
+import 'views/tipo_de_ropa_view.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
