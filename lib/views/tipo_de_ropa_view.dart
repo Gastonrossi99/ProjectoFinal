@@ -11,6 +11,7 @@ class ItemDetailView extends StatefulWidget {
   final int id;
   final String type; // 'Categoria' o 'Licencia'
   final VoidCallback onBack;
+  final Function(Producto) onShowProductDetail;
 
   const ItemDetailView({
     super.key,
@@ -18,6 +19,7 @@ class ItemDetailView extends StatefulWidget {
     required this.id,
     required this.type,
     required this.onBack,
+    required this.onShowProductDetail,
   });
 
   @override
@@ -30,36 +32,43 @@ class _ItemDetailViewState extends State<ItemDetailView> {
   int? _selectedFilterId; // Si es Categoria, filtra por licenseID. Si es Licencia, por categoriaID.
   List<int> _favoriteIds = [];
   bool _isLoggedIn = false;
+  String? _userEmail;
 
   @override
   void initState() {
     super.initState();
     _checkLoginStatus();
-    _loadFavorites();
   }
 
   Future<void> _checkLoginStatus() async {
     final prefs = await SharedPreferences.getInstance();
+    final email = prefs.getString('user_email');
     setState(() {
-      _isLoggedIn = prefs.containsKey('user_email');
+      _isLoggedIn = email != null;
+      _userEmail = email;
     });
+    if (_isLoggedIn) {
+      _loadFavorites();
+    }
   }
 
   Future<void> _loadFavorites() async {
-    final favs = await _dbService.getFavoriteProductIDs();
+    if (_userEmail == null) return;
+    final favs = await _dbService.getFavoriteProductIDs(_userEmail!);
     setState(() {
       _favoriteIds = favs;
     });
   }
 
   Future<void> _toggleFavorite(int productID) async {
+    if (_userEmail == null) return;
     if (_favoriteIds.contains(productID)) {
-      await _dbService.removeFromFavorites(productID);
+      await _dbService.removeFromFavorites(productID, _userEmail!);
       setState(() {
         _favoriteIds.remove(productID);
       });
     } else {
-      await _dbService.addToFavorites(productID);
+      await _dbService.addToFavorites(productID, _userEmail!);
       setState(() {
         _favoriteIds.add(productID);
       });
@@ -203,51 +212,57 @@ class _ItemDetailViewState extends State<ItemDetailView> {
   Widget _buildProductCard(Producto producto) {
     final isFavorite = _favoriteIds.contains(producto.productID);
     
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(
-          child: Container(
-            width: double.infinity,
-            decoration: BoxDecoration(
-              color: const Color(0xFFF3F0F8),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(16),
-              child: producto.backgroundImage.isNotEmpty
-                  ? Image.network(
-                      producto.backgroundImage,
-                      fit: BoxFit.contain,
-                    )
-                  : const Icon(Icons.shopping_bag_outlined, size: 50, color: Colors.grey),
-            ),
-          ),
-        ),
-        const SizedBox(height: 8),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: () => widget.onShowProductDetail(producto),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
-              child: Text(
-                producto.nombre,
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+              child: Container(
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF3F0F8),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: producto.backgroundImage.isNotEmpty
+                      ? Image.network(
+                          producto.backgroundImage,
+                          fit: BoxFit.contain,
+                        )
+                      : const Icon(Icons.shopping_bag_outlined, size: 50, color: Colors.grey),
+                ),
               ),
             ),
-            if (_isLoggedIn)
-              _FavoriteButton(
-                isFavorite: isFavorite,
-                onTap: () => _toggleFavorite(producto.productID ?? 0),
-              ),
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    producto.nombre,
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                if (_isLoggedIn)
+                  _FavoriteButton(
+                    isFavorite: isFavorite,
+                    onTap: () => _toggleFavorite(producto.productID ?? 0),
+                  ),
+              ],
+            ),
+            const Text(
+              'Updated today',
+              style: TextStyle(color: Colors.grey, fontSize: 10),
+            ),
           ],
         ),
-        const Text(
-          'Updated today',
-          style: TextStyle(color: Colors.grey, fontSize: 10),
-        ),
-      ],
+      ),
     );
   }
 }
@@ -278,8 +293,8 @@ class _FavoriteButtonState extends State<_FavoriteButton> {
           duration: const Duration(milliseconds: 200),
           curve: Curves.easeOutBack,
           child: Icon(
-            widget.isFavorite ? Icons.favorite : Icons.favorite_border,
-            color: widget.isFavorite ? Colors.red : Colors.grey,
+            widget.isFavorite ? Icons.bookmark : Icons.bookmark_border,
+            color: widget.isFavorite ? const Color(0xFF6750A4) : Colors.grey,
             size: 18,
           ),
         ),

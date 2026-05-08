@@ -72,6 +72,19 @@ class FirebaseService {
         snapshot.docs.map((doc) => Producto.fromMap(doc.data())).toList());
   }
 
+  Future<Producto?> getProductoById(int productID) async {
+    final snapshot = await _db
+        .collection(_productosColl)
+        .where('productID', isEqualTo: productID)
+        .limit(1)
+        .get();
+    
+    if (snapshot.docs.isNotEmpty) {
+      return Producto.fromMap(snapshot.docs.first.data());
+    }
+    return null;
+  }
+
   Stream<List<Producto>> getProductosFiltrados({int? categoriaID, int? licenseID}) {
     Query query = _db.collection(_productosColl);
     if (categoriaID != null) {

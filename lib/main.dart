@@ -7,6 +7,8 @@ import 'views/otros_view.dart';
 import 'views/ia_design_view.dart';
 import 'views/carrito_view.dart';
 import 'views/tipo_de_ropa_view.dart';
+import 'views/ropa_detalle_view.dart';
+import 'models/producto.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -45,6 +47,9 @@ class _HomePageState extends State<HomePage> {
   int? _detailId;
   String? _detailType;
 
+  // Estado para el detalle de producto
+  Producto? _selectedProducto;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -79,6 +84,23 @@ class _HomePageState extends State<HomePage> {
 
   // Función para devolver la vista correspondiente según la selección
   Widget _getBody() {
+    if (_selectedItem == 'Ropa' && _selectedProducto != null) {
+      return RopaDetalleView(
+        producto: _selectedProducto!,
+        categoryName: _detailName ?? 'Ropa',
+        onBack: () {
+          setState(() {
+            _selectedProducto = null;
+          });
+        },
+        onProductSelected: (p) {
+          setState(() {
+            _selectedProducto = p;
+          });
+        },
+      );
+    }
+
     if (_selectedItem == 'Ropa' && _detailName != null) {
       return ItemDetailView(
         name: _detailName!,
@@ -87,6 +109,11 @@ class _HomePageState extends State<HomePage> {
         onBack: () {
           setState(() {
             _detailName = null;
+          });
+        },
+        onShowProductDetail: (p) {
+          setState(() {
+            _selectedProducto = p;
           });
         },
       );

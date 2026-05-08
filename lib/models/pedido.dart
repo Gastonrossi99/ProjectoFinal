@@ -1,14 +1,16 @@
+import 'dart:convert';
+
 class Pedido {
   int? pedidoID;
   int userID;
-  int productID;
+  List<int> productosIDs;
   int proveedorID;
   DateTime diaDeLlegada;
 
   Pedido({
     this.pedidoID,
     required this.userID,
-    required this.productID,
+    required this.productosIDs,
     required this.proveedorID,
     required this.diaDeLlegada,
   });
@@ -17,7 +19,7 @@ class Pedido {
     return {
       'pedidoID': pedidoID,
       'userID': userID,
-      'productID': productID,
+      'productosIDs': productosIDs,
       'proveedorID': proveedorID,
       'diaDeLlegada': diaDeLlegada.toIso8601String(),
     };
@@ -27,11 +29,13 @@ class Pedido {
     return Pedido(
       pedidoID: map['pedidoID'],
       userID: map['userID'],
-      productID: map['productID'],
+      productosIDs: List<int>.from(map['productosIDs'] ?? []),
       proveedorID: map['proveedorID'],
-      diaDeLlegada: map['diaDeLlegada'] is String 
-          ? DateTime.parse(map['diaDeLlegada']) 
-          : (map['diaDeLlegada'] as dynamic).toDate(),
+      diaDeLlegada: DateTime.parse(map['diaDeLlegada']),
     );
   }
+
+  String toJson() => json.encode(toMap());
+
+  factory Pedido.fromJson(String source) => Pedido.fromMap(json.decode(source));
 }
