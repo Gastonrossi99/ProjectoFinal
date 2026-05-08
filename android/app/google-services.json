@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "493172181811",
+    "project_id": "ianime-2a36d",
+    "storage_bucket": "ianime-2a36d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:493172181811:android:32bbcc4b8ddbb5d68b8c46",
+        "android_client_info": {
+          "package_name": "com.example.android_studios_projects"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBFFl2fQ_4pPRsHKgQBXG40Jc_gqPDN26g"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
