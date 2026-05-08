@@ -6,7 +6,7 @@ import 'views/perfil.dart';
 import 'views/otros.dart';
 import 'views/ia_design.dart';
 import 'views/carrito.dart';
-import 'views/item_detail.dart';
+import 'views/tipo_de_ropa.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -53,7 +53,6 @@ class _HomePageState extends State<HomePage> {
         elevation: 0,
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
-        // El botón del menú aparecerá automáticamente porque hay un Drawer
       ),
       drawer: SizedBox(
         width: 80,
@@ -80,7 +79,6 @@ class _HomePageState extends State<HomePage> {
 
   // Función para devolver la vista correspondiente según la selección
   Widget _getBody() {
-    // Si estamos en Ropa y hay un detalle seleccionado, mostramos el detalle
     if (_selectedItem == 'Ropa' && _detailName != null) {
       return ItemDetailView(
         name: _detailName!,
@@ -133,9 +131,9 @@ class _HomePageState extends State<HomePage> {
       onTap: () {
         setState(() {
           _selectedItem = title;
-          _detailName = null; // Limpiamos el detalle al cambiar de sección
+          _detailName = null;
         });
-        Navigator.pop(context); // Cerramos el drawer al seleccionar
+        Navigator.pop(context);
       },
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 12),
