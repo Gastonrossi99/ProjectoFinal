@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 import '../models/producto.dart';
 import '../models/categoria.dart';
 import '../models/licencia.dart';
@@ -229,10 +230,15 @@ class _ItemDetailViewState extends State<ItemDetailView> {
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(16),
                   child: producto.backgroundImage.isNotEmpty
-                      ? Image.network(
-                          producto.backgroundImage,
-                          fit: BoxFit.contain,
-                        )
+                      ? (producto.backgroundImage.startsWith('data:image')
+                          ? Image.memory(
+                              base64Decode(producto.backgroundImage.split(',').last),
+                              fit: BoxFit.contain,
+                            )
+                          : Image.network(
+                              producto.backgroundImage,
+                              fit: BoxFit.contain,
+                            ))
                       : const Icon(Icons.shopping_bag_outlined, size: 50, color: Colors.grey),
                 ),
               ),

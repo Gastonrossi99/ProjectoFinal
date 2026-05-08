@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 import '../services/db_service.dart';
 import '../services/firebase_service.dart';
 import '../models/producto.dart';
@@ -207,7 +208,12 @@ class _CarritoViewState extends State<CarritoView> {
             child: ClipRRect(
               borderRadius: BorderRadius.circular(20),
               child: producto.backgroundImage.isNotEmpty
-                  ? Image.network(producto.backgroundImage, fit: BoxFit.contain)
+                  ? (producto.backgroundImage.startsWith('data:image')
+                      ? Image.memory(
+                          base64Decode(producto.backgroundImage.split(',').last),
+                          fit: BoxFit.contain,
+                        )
+                      : Image.network(producto.backgroundImage, fit: BoxFit.contain))
                   : const Icon(Icons.shopping_bag_outlined, size: 50, color: Colors.grey),
             ),
           ),

@@ -1,10 +1,15 @@
 import 'dart:typed_data';
 import 'dart:io';
 import 'dart:math';
+import 'dart:convert';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+import '../services/firebase_service.dart';
+import '../services/db_service.dart';
+import '../models/producto.dart';
 
 class IADesignView extends StatefulWidget {
   const IADesignView({super.key});
@@ -15,10 +20,13 @@ class IADesignView extends StatefulWidget {
 
 class _IADesignViewState extends State<IADesignView> {
   final ImagePicker _picker = ImagePicker();
+  final FirebaseService _firebaseService = FirebaseService();
+  final DBService _dbService = DBService();
   
   Uint8List? _generatedImage;
   XFile? _pickedFile;
   bool _isLoading = false;
+  bool _isAddingToCart = false;
   
   // Tu API Key
   final String _apiKey = 'sk-74nxQDGO3URhhCzg0sctGFIpeEJ6W2olZD9V3ZlHDXWKlZg0';
@@ -119,6 +127,71 @@ class _IADesignViewState extends State<IADesignView> {
       if (mounted) {
         setState(() {
           _isLoading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _addToCart() async {
+    if (_generatedImage == null) return;
+
+    setState(() {
+      _isAddingToCart = true;
+    });
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final email = prefs.getString('user_email');
+
+      if (email == null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Por favor, inicia sesión para añadir al carrito')),
+          );
+        }
+        return;
+      }
+
+      // Convertir imagen a Base64 para guardarla en Firestore (como string)
+      // Nota: Si la imagen es muy grande, esto podría fallar en Firestore (límite 1MB)
+      final String base64Image = base64Encode(_generatedImage!);
+      final String dataUri = 'data:image/png;base64,$base64Image';
+
+      final nuevoProducto = Producto(
+        nombre: 'IA Design',
+        stock: 99,
+        coste: 39.99, // Precio fijo para diseños IA
+        detalles: 'Camiseta personalizada diseñada con Inteligencia Artificial.',
+        categoriaID: 1, // Usamos una categoría por defecto (ej. Camisetas)
+        backgroundImage: dataUri,
+        licenseID: 0, // Sin licencia
+      );
+
+      // 1. Guardar producto en Firestore
+      await _firebaseService.addProducto(nuevoProducto);
+
+      // 2. Añadir al carrito local (SQLite/SharedPrefs)
+      if (nuevoProducto.productID != null) {
+        await _dbService.addToCart(nuevoProducto.productID!, email);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('¡Diseño añadido al carrito!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error al añadir al carrito: $e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isAddingToCart = false;
         });
       }
     }
@@ -230,6 +303,43 @@ class _IADesignViewState extends State<IADesignView> {
                       minimumSize: const Size(double.infinity, 50),
                       backgroundColor: const Color(0xFF1D1B20),
                       foregroundColor: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 15),
+                  ElevatedButton(
+                    onPressed: (_generatedImage == null || _isAddingToCart) ? null : _addToCart,
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: const Size(double.infinity, 50),
+                      backgroundColor: const Color(0xFF6750A4),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                    ),
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            _isAddingToCart
+                                ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                        color: Colors.white, strokeWidth: 2))
+                                : const Icon(Icons.add_shopping_cart),
+                            const SizedBox(width: 12),
+                            const Text('3. Añadir al Carrito'),
+                          ],
+                        ),
+                        const Align(
+                          alignment: Alignment.centerRight,
+                          child: Text(
+                            '39.99€',
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 16),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],

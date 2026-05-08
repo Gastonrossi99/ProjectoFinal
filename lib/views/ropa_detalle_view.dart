@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 import '../models/producto.dart';
 import '../services/firebase_service.dart';
 import '../services/db_service.dart';
@@ -58,7 +59,12 @@ class RopaDetalleView extends StatelessWidget {
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(20),
                         child: producto.backgroundImage.isNotEmpty
-                            ? Image.network(producto.backgroundImage, fit: BoxFit.contain)
+                            ? (producto.backgroundImage.startsWith('data:image')
+                                ? Image.memory(
+                                    base64Decode(producto.backgroundImage.split(',').last),
+                                    fit: BoxFit.contain,
+                                  )
+                                : Image.network(producto.backgroundImage, fit: BoxFit.contain))
                             : const Icon(Icons.shopping_bag_outlined, size: 100, color: Colors.grey),
                       ),
                     ),
@@ -195,7 +201,12 @@ class RopaDetalleView extends StatelessWidget {
                                 child: ClipRRect(
                                   borderRadius: BorderRadius.circular(12),
                                   child: p.backgroundImage.isNotEmpty
-                                      ? Image.network(p.backgroundImage, fit: BoxFit.contain)
+                                      ? (p.backgroundImage.startsWith('data:image')
+                                          ? Image.memory(
+                                              base64Decode(p.backgroundImage.split(',').last),
+                                              fit: BoxFit.contain,
+                                            )
+                                          : Image.network(p.backgroundImage, fit: BoxFit.contain))
                                       : const Icon(Icons.image),
                                 ),
                               ),
