@@ -1,6 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart'; 
+import 'models/user.dart';
+import 'models/categoria.dart';
+import 'models/producto.dart';
+import 'models/proveedor.dart';
+import 'models/pedido.dart';
+import 'services/firebase_service.dart';
 
-void main() => runApp(const MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  
+  runApp(const MyApp());
+}
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -27,12 +42,10 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    // Calculamos 1/3 del ancho de la pantalla
-    double drawerWidth = MediaQuery.of(context).size.width / 3;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('IA Design Shop'),
+        title: const Text('IAnime'),
         elevation: 0,
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
@@ -65,9 +78,72 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
       body: Center(
-        child: Text(
-          'Sección: $_selectedItem',
-          style: const TextStyle(fontSize: 20),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              'Sección: $_selectedItem',
+              style: const TextStyle(fontSize: 20),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () async {
+                try {
+                  final service = FirebaseService();
+
+                  // 1. Crear Usuario
+                  final newUser = User(
+                    nombre: 'Juan',
+                    apellidos: 'Pérez',
+                    correo: 'juan.perez@example.com',
+                    telefono: '123456789',
+                    direccion: 'Calle Falsa 123',
+                  );
+                  await service.addUser(newUser);
+
+                  // 2. Crear Categoría
+                  final newCat = Categoria(nombre: 'Electrónica');
+                  await service.addCategoria(newCat);
+
+                  // 3. Crear Producto (usa ID de categoría)
+                  final newProd = Producto(
+                    nombre: 'Smartphone',
+                    stock: 10,
+                    coste: 299.99,
+                    detalles: 'Un gran teléfono',
+                    categoriaID: newCat.categoriaID ?? 0,
+                  );
+                  await service.addProducto(newProd);
+
+                  // 4. Crear Proveedor
+                  final newProv = Proveedor(nombre: 'Tech Global');
+                  await service.addProveedor(newProv);
+
+                  // 5. Crear Pedido (usa IDs de user, producto y proveedor)
+                  final newPedido = Pedido(
+                    userID: newUser.userID ?? 0,
+                    productID: newProd.productID ?? 0,
+                    proveedorID: newProv.proveedorID ?? 0,
+                    diaDeLlegada: DateTime.now().add(const Duration(days: 7)),
+                  );
+                  await service.addPedido(newPedido);
+
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('¡Datos agregados en las 5 colecciones!')),
+                    );
+                  }
+                } catch (e) {
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Error: $e')),
+                    );
+                  }
+                }
+              },
+              child: const Text('Probar conexión: Agregar Todo'),
+            ),
+          ],
         ),
       ),
     );
