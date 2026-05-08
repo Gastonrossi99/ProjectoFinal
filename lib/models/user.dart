@@ -3,6 +3,7 @@ class User {
   String nombre;
   String apellidos;
   String correo;
+  String password;
   String telefono;
   String direccion;
 
@@ -11,6 +12,7 @@ class User {
     required this.nombre,
     required this.apellidos,
     required this.correo,
+    required this.password,
     required this.telefono,
     required this.direccion,
   });
@@ -22,6 +24,7 @@ class User {
       'nombre': nombre,
       'apellidos': apellidos,
       'correo': correo,
+      'password': password,
       'telefono': telefono,
       'direccion': direccion,
     };
@@ -34,6 +37,7 @@ class User {
       nombre: map['nombre'],
       apellidos: map['apellidos'],
       correo: map['correo'],
+      password: map['password'] ?? '',
       telefono: map['telefono'],
       direccion: map['direccion'],
     );

@@ -23,13 +23,25 @@ class FirebaseService {
     int newId = snapshot.docs.length + 1;
     user.userID = newId;
     
-    print("Enviando a Firebase (User): ${user.toMap()}");
     await _db.collection(_usersColl).add(user.toMap());
   }
 
   Stream<List<User>> getUsers() {
     return _db.collection(_usersColl).snapshots().map((snapshot) =>
         snapshot.docs.map((doc) => User.fromMap(doc.data())).toList());
+  }
+
+  Future<User?> getUserByEmail(String email) async {
+    final snapshot = await _db
+        .collection(_usersColl)
+        .where('correo', isEqualTo: email)
+        .limit(1)
+        .get();
+    
+    if (snapshot.docs.isNotEmpty) {
+      return User.fromMap(snapshot.docs.first.data());
+    }
+    return null;
   }
 
   // --- CATEGORIAS ---
