@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/producto.dart';
 import '../models/categoria.dart';
 import '../models/licencia.dart';
 import '../services/firebase_service.dart';
+import '../services/db_service.dart';
 
 class ItemDetailView extends StatefulWidget {
   final String name;
@@ -24,7 +26,45 @@ class ItemDetailView extends StatefulWidget {
 
 class _ItemDetailViewState extends State<ItemDetailView> {
   final FirebaseService _service = FirebaseService();
+  final DBService _dbService = DBService();
   int? _selectedFilterId; // Si es Categoria, filtra por licenseID. Si es Licencia, por categoriaID.
+  List<int> _favoriteIds = [];
+  bool _isLoggedIn = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkLoginStatus();
+    _loadFavorites();
+  }
+
+  Future<void> _checkLoginStatus() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _isLoggedIn = prefs.containsKey('user_email');
+    });
+  }
+
+  Future<void> _loadFavorites() async {
+    final favs = await _dbService.getFavoriteProductIDs();
+    setState(() {
+      _favoriteIds = favs;
+    });
+  }
+
+  Future<void> _toggleFavorite(int productID) async {
+    if (_favoriteIds.contains(productID)) {
+      await _dbService.removeFromFavorites(productID);
+      setState(() {
+        _favoriteIds.remove(productID);
+      });
+    } else {
+      await _dbService.addToFavorites(productID);
+      setState(() {
+        _favoriteIds.add(productID);
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -161,6 +201,8 @@ class _ItemDetailViewState extends State<ItemDetailView> {
   }
 
   Widget _buildProductCard(Producto producto) {
+    final isFavorite = _favoriteIds.contains(producto.productID);
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -183,17 +225,65 @@ class _ItemDetailViewState extends State<ItemDetailView> {
           ),
         ),
         const SizedBox(height: 8),
-        Text(
-          producto.nombre,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: Text(
+                producto.nombre,
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            if (_isLoggedIn)
+              _FavoriteButton(
+                isFavorite: isFavorite,
+                onTap: () => _toggleFavorite(producto.productID ?? 0),
+              ),
+          ],
         ),
         const Text(
           'Updated today',
           style: TextStyle(color: Colors.grey, fontSize: 10),
         ),
       ],
+    );
+  }
+}
+
+class _FavoriteButton extends StatefulWidget {
+  final bool isFavorite;
+  final VoidCallback onTap;
+
+  const _FavoriteButton({required this.isFavorite, required this.onTap});
+
+  @override
+  State<_FavoriteButton> createState() => _FavoriteButtonState();
+}
+
+class _FavoriteButtonState extends State<_FavoriteButton> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: AnimatedScale(
+          scale: _isHovered ? 1.3 : 1.0,
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOutBack,
+          child: Icon(
+            widget.isFavorite ? Icons.favorite : Icons.favorite_border,
+            color: widget.isFavorite ? Colors.red : Colors.grey,
+            size: 18,
+          ),
+        ),
+      ),
     );
   }
 }
