@@ -2,9 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/firebase_service.dart';
 import '../models/user.dart';
+import '../models/producto.dart';
+import 'favoritos_view.dart';
+import 'pedidos_view.dart';
 
 class PerfilView extends StatefulWidget {
-  const PerfilView({super.key});
+  final Function(Producto, String)? onShowProductDetail;
+  const PerfilView({super.key, this.onShowProductDetail});
 
   @override
   State<PerfilView> createState() => _PerfilViewState();
@@ -18,6 +22,7 @@ class _PerfilViewState extends State<PerfilView> {
   bool _showLogin = true;
   User? _currentUser;
   bool _isLoading = true;
+  String? _subView; // 'favoritos' or 'pedidos'
 
   // Controllers
   final _nombreController = TextEditingController();
@@ -122,13 +127,35 @@ class _PerfilViewState extends State<PerfilView> {
       );
     }
 
+    if (_isLoggedIn) {
+      if (_subView == 'favoritos') {
+        return FavoritosView(
+          userEmail: _currentUser!.correo,
+          onBack: () => setState(() => _subView = null),
+          onShowProductDetail: widget.onShowProductDetail,
+        );
+      }
+      if (_subView == 'pedidos') {
+        return PedidosView(
+          userEmail: _currentUser!.correo,
+          onBack: () => setState(() => _subView = null),
+          onShowProductDetail: widget.onShowProductDetail,
+        );
+      }
+      return Scaffold(
+        backgroundColor: Colors.white,
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(24.0),
+          child: _buildProfileInfo(),
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
-        child: _isLoggedIn 
-            ? _buildProfileInfo() 
-            : (_showLogin ? _buildLoginForm() : _buildRegistrationForm()),
+        child: _showLogin ? _buildLoginForm() : _buildRegistrationForm(),
       ),
     );
   }
@@ -148,6 +175,28 @@ class _PerfilViewState extends State<PerfilView> {
           _buildInfoTile(Icons.person, 'Nombre completo', '${_currentUser?.nombre} ${_currentUser?.apellidos}'),
           _buildInfoTile(Icons.phone, 'Teléfono', _currentUser?.telefono ?? ''),
           _buildInfoTile(Icons.location_on, 'Dirección', _currentUser?.direccion ?? ''),
+          
+          const SizedBox(height: 24),
+          Row(
+            children: [
+              Expanded(
+                child: _buildActionButton(
+                  icon: Icons.bookmark_outline,
+                  label: 'Favoritos',
+                  onTap: () => setState(() => _subView = 'favoritos'),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: _buildActionButton(
+                  icon: Icons.local_shipping_outlined,
+                  label: 'Pedidos',
+                  onTap: () => setState(() => _subView = 'pedidos'),
+                ),
+              ),
+            ],
+          ),
+          
           const SizedBox(height: 40),
           ElevatedButton.icon(
             onPressed: _logout,
@@ -160,6 +209,28 @@ class _PerfilViewState extends State<PerfilView> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildActionButton({required IconData icon, required String label, required VoidCallback onTap}) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 20),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF3F0F8),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFFE8DEF8)),
+        ),
+        child: Column(
+          children: [
+            Icon(icon, color: const Color(0xFF6750A4), size: 32),
+            const SizedBox(height: 8),
+            Text(label, style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF6750A4))),
+          ],
+        ),
       ),
     );
   }

@@ -6,7 +6,8 @@ import '../models/producto.dart';
 import 'carrito_detalle_view.dart';
 
 class CarritoView extends StatefulWidget {
-  const CarritoView({super.key});
+  final VoidCallback? onGoToHome;
+  const CarritoView({super.key, this.onGoToHome});
 
   @override
   State<CarritoView> createState() => _CarritoViewState();
@@ -114,7 +115,17 @@ class _CarritoViewState extends State<CarritoView> {
     if (_isNavigatingToDetalle) {
       return CarritoDetalleView(
         total: _totalPrice,
+        userEmail: _userEmail!,
+        productIDs: _cartProducts.map((p) => p.productID!).toList(),
         onBack: () => setState(() => _isNavigatingToDetalle = false),
+        onHome: () {
+          setState(() {
+            _isNavigatingToDetalle = false;
+            _cartProducts.clear();
+            _quantities.clear();
+          });
+          if (widget.onGoToHome != null) widget.onGoToHome!();
+        },
       );
     }
 

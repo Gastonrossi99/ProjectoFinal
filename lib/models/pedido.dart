@@ -6,6 +6,7 @@ class Pedido {
   List<int> productosIDs;
   int proveedorID;
   DateTime diaDeLlegada;
+  double coste;
 
   Pedido({
     this.pedidoID,
@@ -13,6 +14,7 @@ class Pedido {
     required this.productosIDs,
     required this.proveedorID,
     required this.diaDeLlegada,
+    required this.coste,
   });
 
   Map<String, dynamic> toMap() {
@@ -22,6 +24,7 @@ class Pedido {
       'productosIDs': productosIDs,
       'proveedorID': proveedorID,
       'diaDeLlegada': diaDeLlegada.toIso8601String(),
+      'coste': coste,
     };
   }
 
@@ -32,6 +35,7 @@ class Pedido {
       productosIDs: List<int>.from(map['productosIDs'] ?? []),
       proveedorID: map['proveedorID'],
       diaDeLlegada: DateTime.parse(map['diaDeLlegada']),
+      coste: (map['coste'] ?? 0.0).toDouble(),
     );
   }
 

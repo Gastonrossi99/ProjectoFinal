@@ -121,7 +121,15 @@ class _HomePageState extends State<HomePage> {
 
     switch (_selectedItem) {
       case 'Perfil':
-        return const PerfilView();
+        return PerfilView(
+          onShowProductDetail: (Producto p, String category) {
+            setState(() {
+              _selectedItem = 'Ropa';
+              _detailName = category;
+              _selectedProducto = p;
+            });
+          },
+        );
       case 'Ropa':
         return HomeView(
           onShowDetail: (name, id, type) {
@@ -137,7 +145,15 @@ class _HomePageState extends State<HomePage> {
       case 'IA Design':
         return const IADesignView();
       case 'Carrito':
-        return const CarritoView();
+        return CarritoView(
+          onGoToHome: () {
+            setState(() {
+              _selectedItem = 'Ropa';
+              _detailName = null;
+              _selectedProducto = null;
+            });
+          },
+        );
       default:
         return HomeView(
           onShowDetail: (name, id, type) {
