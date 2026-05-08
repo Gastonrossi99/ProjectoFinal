@@ -4,6 +4,7 @@ import '../models/categoria.dart';
 import '../models/producto.dart';
 import '../models/proveedor.dart';
 import '../models/pedido.dart';
+import '../models/licencia.dart';
 
 class FirebaseService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
@@ -14,6 +15,7 @@ class FirebaseService {
   final String _productosColl = 'productos';
   final String _proveedoresColl = 'proveedores';
   final String _pedidosColl = 'pedidos';
+  final String _licenciasColl = 'licencias';
 
   // --- USUARIOS ---
   Future<void> addUser(User user) async {
@@ -21,7 +23,7 @@ class FirebaseService {
     int newId = snapshot.docs.length + 1;
     user.userID = newId;
     
-    print("Enviando a Firebase: ${user.toMap()}"); // Debug para ver el ID
+    print("Enviando a Firebase (User): ${user.toMap()}");
     await _db.collection(_usersColl).add(user.toMap());
   }
 
@@ -76,5 +78,19 @@ class FirebaseService {
   Stream<List<Pedido>> getPedidos() {
     return _db.collection(_pedidosColl).snapshots().map((snapshot) =>
         snapshot.docs.map((doc) => Pedido.fromMap(doc.data())).toList());
+  }
+
+  // --- LICENCIAS ---
+  Future<void> addLicencia(Licencia licencia) async {
+    final snapshot = await _db.collection(_licenciasColl).get();
+    int newId = snapshot.docs.length + 1;
+    licencia.licenseID = newId;
+    
+    await _db.collection(_licenciasColl).add(licencia.toMap());
+  }
+
+  Stream<List<Licencia>> getLicencias() {
+    return _db.collection(_licenciasColl).snapshots().map((snapshot) =>
+        snapshot.docs.map((doc) => Licencia.fromMap(doc.data())).toList());
   }
 }

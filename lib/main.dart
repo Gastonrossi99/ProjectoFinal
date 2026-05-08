@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart'; 
-import 'models/user.dart';
-import 'models/categoria.dart';
-import 'models/producto.dart';
-import 'models/proveedor.dart';
-import 'models/pedido.dart';
-import 'services/firebase_service.dart';
+import 'views/home.dart';
+import 'views/perfil.dart';
+import 'views/otros.dart';
+import 'views/ia_design.dart';
+import 'views/carrito.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -42,7 +41,6 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('IAnime'),
@@ -54,102 +52,43 @@ class _HomePageState extends State<HomePage> {
         width: 80,
         child: Drawer(
           backgroundColor: Colors.white,
-          child: Column( // Usamos Column en lugar de ListView para usar Spacer
+          child: Column(
             children: [
-              // 1. BOTÓN DE PERFIL (Superior)
               const SizedBox(height: 50),
               _buildMenuItem(Icons.person_pin, 'Perfil'),
-
-              const Divider(indent: 20, endIndent: 20), // Línea divisoria sutil
-
-              // 2. BOTONES CENTRALES
+              const Divider(indent: 20, endIndent: 20),
               _buildMenuItem(Icons.stars_outlined, 'Ropa'),
               _buildMenuItem(Icons.stars_outlined, 'Otros'),
               _buildMenuItem(Icons.stars_outlined, 'IA Design'),
-
-              // El Spacer empuja todo lo que viene debajo al final del menú
               const Spacer(),
-
-              // 3. BOTÓN DEL CARRITO (Inferior)
               _buildMenuItem(Icons.shopping_cart_outlined, 'Carrito'),
-              const SizedBox(height: 30), // Espacio final
+              const SizedBox(height: 30),
             ],
           ),
         ),
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              'Sección: $_selectedItem',
-              style: const TextStyle(fontSize: 20),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () async {
-                try {
-                  final service = FirebaseService();
-
-                  // 1. Crear Usuario
-                  final newUser = User(
-                    nombre: 'Juan',
-                    apellidos: 'Pérez',
-                    correo: 'juan.perez@example.com',
-                    telefono: '123456789',
-                    direccion: 'Calle Falsa 123',
-                  );
-                  await service.addUser(newUser);
-
-                  // 2. Crear Categoría
-                  final newCat = Categoria(nombre: 'Electrónica');
-                  await service.addCategoria(newCat);
-
-                  // 3. Crear Producto (usa ID de categoría)
-                  final newProd = Producto(
-                    nombre: 'Smartphone',
-                    stock: 10,
-                    coste: 299.99,
-                    detalles: 'Un gran teléfono',
-                    categoriaID: newCat.categoriaID ?? 0,
-                  );
-                  await service.addProducto(newProd);
-
-                  // 4. Crear Proveedor
-                  final newProv = Proveedor(nombre: 'Tech Global');
-                  await service.addProveedor(newProv);
-
-                  // 5. Crear Pedido (usa IDs de user, producto y proveedor)
-                  final newPedido = Pedido(
-                    userID: newUser.userID ?? 0,
-                    productID: newProd.productID ?? 0,
-                    proveedorID: newProv.proveedorID ?? 0,
-                    diaDeLlegada: DateTime.now().add(const Duration(days: 7)),
-                  );
-                  await service.addPedido(newPedido);
-
-                  if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('¡Datos agregados en las 5 colecciones!')),
-                    );
-                  }
-                } catch (e) {
-                  if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Error: $e')),
-                    );
-                  }
-                }
-              },
-              child: const Text('Probar conexión: Agregar Todo'),
-            ),
-          ],
-        ),
-      ),
+      body: _getBody(),
     );
   }
 
-  // Widget personalizado para los botones con el efecto de "píldora"
+  // Función para devolver la vista correspondiente según la selección
+  Widget _getBody() {
+    switch (_selectedItem) {
+      case 'Perfil':
+        return const PerfilView();
+      case 'Ropa':
+        return const HomeView();
+      case 'Otros':
+        return const OtrosView();
+      case 'IA Design':
+        return const IADesignView();
+      case 'Carrito':
+        return const CarritoView();
+      default:
+        return const HomeView();
+    }
+  }
+
   Widget _buildMenuItem(IconData icon, String title) {
     bool isSelected = _selectedItem == title;
 
@@ -158,14 +97,12 @@ class _HomePageState extends State<HomePage> {
         setState(() {
           _selectedItem = title;
         });
-        // Si quieres que el menú se cierre al hacer clic, descomenta la siguiente línea:
-        // Navigator.pop(context);
+        // Navigator.pop(context); // Opcional: cierra el menú al seleccionar
       },
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 12),
         child: Column(
           children: [
-            // El contenedor que crea el óvalo de selección
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
               decoration: BoxDecoration(
@@ -193,7 +130,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // Función auxiliar para cambiar a icono sólido cuando se selecciona
   IconData _getSolidIcon(IconData icon) {
     if (icon == Icons.stars_outlined) return Icons.stars;
     if (icon == Icons.person_pin) return Icons.person;

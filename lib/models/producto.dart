@@ -5,6 +5,8 @@ class Producto {
   double coste;
   String detalles;
   int categoriaID;
+  String backgroundImage;
+  int licenseID;
 
   Producto({
     this.productID,
@@ -13,6 +15,8 @@ class Producto {
     required this.coste,
     required this.detalles,
     required this.categoriaID,
+    required this.backgroundImage,
+    required this.licenseID,
   });
 
   Map<String, dynamic> toMap() {
@@ -23,6 +27,8 @@ class Producto {
       'coste': coste,
       'detalles': detalles,
       'categoriaID': categoriaID,
+      'backgroundImage': backgroundImage,
+      'licenseID': licenseID,
     };
   }
 
@@ -34,6 +40,8 @@ class Producto {
       coste: map['coste'],
       detalles: map['detalles'],
       categoriaID: map['categoriaID'],
+      backgroundImage: map['backgroundImage'] ?? '',
+      licenseID: map['licenseID'] ?? 0,
     );
   }
 }
