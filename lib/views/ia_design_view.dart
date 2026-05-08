@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:image/image.dart' as img;
 import '../services/firebase_service.dart';
 import '../services/db_service.dart';
 import '../models/producto.dart';
@@ -152,10 +153,19 @@ class _IADesignViewState extends State<IADesignView> {
         return;
       }
 
-      // Convertir imagen a Base64 para guardarla en Firestore (como string)
-      // Nota: Si la imagen es muy grande, esto podría fallar en Firestore (límite 1MB)
-      final String base64Image = base64Encode(_generatedImage!);
-      final String dataUri = 'data:image/png;base64,$base64Image';
+      // Comprimir la imagen para que quepa en Firestore (límite de 1MB por documento)
+      // El Base64 aumenta el tamaño un 33%, así que el original debe ser < 750KB
+      Uint8List compressedBytes = _generatedImage!;
+      final decodedImage = img.decodeImage(compressedBytes);
+      
+      if (decodedImage != null) {
+        // Redimensionar a un tamaño razonable para previsualización y comprimir como JPG
+        final resized = img.copyResize(decodedImage, width: 512); 
+        compressedBytes = Uint8List.fromList(img.encodeJpg(resized, quality: 80));
+      }
+
+      final String base64Image = base64Encode(compressedBytes);
+      final String dataUri = 'data:image/jpeg;base64,$base64Image';
 
       final nuevoProducto = Producto(
         nombre: 'IA Design',
